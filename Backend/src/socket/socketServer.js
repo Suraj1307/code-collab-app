@@ -8,7 +8,7 @@ export function initializeSocketServer(httpServer, allowedOrigins) {
   const io = new Server(httpServer, { cors: createSocketCors(allowedOrigins) })
   const ySocketIO = new YSocketIO(io, { authenticate: (handshake) => Boolean(getValidRoomSession(handshake)) })
   ySocketIO.initialize()
-  const namespace = io.of(/^\/yjs\|.*$/)
+  const namespace = ySocketIO.nsp
   namespace.use((socket, next) => {
     const session = getValidRoomSession(socket.handshake)
     if (!session || session.room.roomId !== getDocumentRoomId(socket.nsp.name)) return next(new Error("Unauthorized"))
