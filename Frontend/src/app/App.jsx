@@ -2,6 +2,7 @@ import "./App.css"
 import { Editor } from "@monaco-editor/react"
 import { MonacoBinding } from "y-monaco"
 import { useEffect, useMemo, useRef, useState } from "react"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import * as Y from "yjs"
 import { SocketIOProvider } from "y-socket.io"
 
@@ -23,6 +24,8 @@ function getInitialUsername() {
 }
 
 function App() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const editorRef = useRef(null)
   const providerRef = useRef(null)
   const bindingRef = useRef(null)
@@ -32,7 +35,6 @@ function App() {
   const [users, setUsers] = useState([])
   const [errorMessage, setErrorMessage] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [roomMode, setRoomMode] = useState("create")
   const [username, setUsername] = useState(() => getInitialUsername())
   const [createForm, setCreateForm] = useState({
     username: getInitialUsername(),
@@ -49,7 +51,8 @@ function App() {
     return stored ? JSON.parse(stored) : null
   })
 
-  const isInRoom = Boolean(username && roomSession)
+  const editorRoomId = location.pathname.match(/^\/editor\/([^/]+)$/)?.[1]
+  const isInRoom = Boolean(username && roomSession && editorRoomId === roomSession.roomId)
 
   const roomSummary = useMemo(() => {
     if (!roomSession) {
@@ -153,6 +156,7 @@ function App() {
       setCreateForm((current) => ({ ...current, username: session.username }))
       setJoinForm((current) => ({ ...current, roomId: result.room.roomId }))
       persistSession(session)
+      navigate(`/editor/${session.roomId}`)
     } catch (error) {
       setErrorMessage(error.message || "Something went wrong.")
     } finally {
@@ -201,7 +205,7 @@ function App() {
     setCreateForm((current) => ({ ...current, username: nextUsername }))
     setRoomSession(null)
     setErrorMessage("")
-    window.history.pushState({}, "", window.location.pathname)
+    navigate("/")
   }
 
   useEffect(() => {
@@ -301,140 +305,13 @@ function App() {
     }
   }, [editorReady, isInRoom, roomSession])
 
-  return (
-    <main className="app-shell">
-      {!isInRoom ? (
-        <section className="auth-shell">
-          <div className="auth-card">
-            <div className="auth-header">
-              <p className="eyebrow">Realtime workspace</p>
-              <h1 className="heading-xl">Start a private room for collaborative coding.</h1>
-              <p className="auth-copy">
-                Create a room with a password or join an existing one with the room ID and password.
-              </p>
-            </div>
+  const isCreatePage = location.pathname === "/create"
+  const isJoinPage = location.pathname === "/join"
+  const isGuestPage = location.pathname === "/guest"
 
-            <button className="btn-secondary guest-button" type="button" onClick={handleGuestRoom} disabled={isSubmitting}>
-              {isSubmitting ? "Opening guest room..." : "Enter guest room"}
-            </button>
-
-            <div className="mode-switcher">
-              <button
-                type="button"
-                className={roomMode === "create" ? "mode-button active" : "mode-button"}
-                onClick={() => {
-                  setRoomMode("create")
-                  setErrorMessage("")
-                }}
-              >
-                Create room
-              </button>
-              <button
-                type="button"
-                className={roomMode === "join" ? "mode-button active" : "mode-button"}
-                onClick={() => {
-                  setRoomMode("join")
-                  setErrorMessage("")
-                }}
-              >
-                Join room
-              </button>
-            </div>
-
-            {roomMode === "create" ? (
-              <form className="room-form" onSubmit={handleCreateRoom}>
-                <label className="form-label">
-                  <span>Username</span>
-                  <input
-                    className="input"
-                    name="username"
-                    value={createForm.username}
-                    onChange={handleCreateChange}
-                    placeholder="suraj8789"
-                    autoComplete="off"
-                  />
-                </label>
-
-                <label className="form-label">
-                  <span>Room name</span>
-                  <input
-                    className="input"
-                    name="roomName"
-                    value={createForm.roomName}
-                    onChange={handleCreateChange}
-                    placeholder="Frontend interview prep"
-                    autoComplete="off"
-                  />
-                </label>
-
-                <label className="form-label">
-                  <span>Room ID</span>
-                  <input
-                    className="input"
-                    name="roomId"
-                    value={createForm.roomId}
-                    onChange={handleCreateChange}
-                    placeholder="FRONTEND101"
-                    autoComplete="off"
-                  />
-                </label>
-
-                <label className="form-label">
-                  <span>Password</span>
-                  <input
-                    className="input"
-                    name="password"
-                    type="password"
-                    value={createForm.password}
-                    onChange={handleCreateChange}
-                    placeholder="Create a room password"
-                    autoComplete="off"
-                  />
-                </label>
-
-                {errorMessage ? <p className="form-error">{errorMessage}</p> : null}
-
-                <button className="btn-primary" type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Creating..." : "Create and enter room"}
-                </button>
-              </form>
-            ) : (
-              <form className="room-form" onSubmit={handleJoinRoom}>
-                <label className="form-label">
-                  <span>Room ID</span>
-                  <input
-                    className="input"
-                    name="roomId"
-                    value={joinForm.roomId}
-                    onChange={handleJoinChange}
-                    placeholder="A1B2C3"
-                    autoComplete="off"
-                  />
-                </label>
-
-                <label className="form-label">
-                  <span>Password</span>
-                  <input
-                    className="input"
-                    name="password"
-                    type="password"
-                    value={joinForm.password}
-                    onChange={handleJoinChange}
-                    placeholder="Enter the room password"
-                    autoComplete="off"
-                  />
-                </label>
-
-                {errorMessage ? <p className="form-error">{errorMessage}</p> : null}
-
-                <button className="btn-primary" type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Joining..." : "Join room"}
-                </button>
-              </form>
-            )}
-          </div>
-        </section>
-      ) : (
+  if (isInRoom) {
+    return (
+      <main className="app-shell">
         <section className="workspace-shell">
           <aside className="sidebar">
             <div className="sidebar-card">
@@ -499,7 +376,146 @@ function App() {
             </div>
           </section>
         </section>
-      )}
+      </main>
+    )
+  }
+
+  return (
+    <main className="app-shell">
+      <section className="auth-shell">
+        <div className="auth-card">
+          {isCreatePage || isJoinPage || isGuestPage ? (
+            <>
+              <div className="auth-header">
+                <p className="eyebrow">Realtime workspace</p>
+                <h1 className="heading-xl">
+                  {isCreatePage ? "Start a private room for collaborative coding." : isJoinPage ? "Join a private room." : "Enter the guest room."}
+                </h1>
+                <p className="auth-copy">
+                  {isGuestPage
+                    ? "Join the shared workspace instantly."
+                    : "Create a room with a password or join an existing one with the room ID and password."}
+                </p>
+              </div>
+
+              <div className="mode-switcher">
+                <Link className={isCreatePage ? "mode-button active" : "mode-button"} to="/create">Create room</Link>
+                <Link className={isJoinPage ? "mode-button active" : "mode-button"} to="/join">Join room</Link>
+              </div>
+
+              {isCreatePage ? (
+              <form className="room-form" onSubmit={handleCreateRoom}>
+                <label className="form-label">
+                  <span>Username</span>
+                  <input
+                    className="input"
+                    name="username"
+                    value={createForm.username}
+                    onChange={handleCreateChange}
+                    placeholder="suraj8789"
+                    autoComplete="off"
+                  />
+                </label>
+
+                <label className="form-label">
+                  <span>Room name</span>
+                  <input
+                    className="input"
+                    name="roomName"
+                    value={createForm.roomName}
+                    onChange={handleCreateChange}
+                    placeholder="Frontend interview prep"
+                    autoComplete="off"
+                  />
+                </label>
+
+                <label className="form-label">
+                  <span>Room ID</span>
+                  <input
+                    className="input"
+                    name="roomId"
+                    value={createForm.roomId}
+                    onChange={handleCreateChange}
+                    placeholder="FRONTEND101"
+                    autoComplete="off"
+                  />
+                </label>
+
+                <label className="form-label">
+                  <span>Password</span>
+                  <input
+                    className="input"
+                    name="password"
+                    type="password"
+                    value={createForm.password}
+                    onChange={handleCreateChange}
+                    placeholder="Create a room password"
+                    autoComplete="off"
+                  />
+                </label>
+
+                {errorMessage ? <p className="form-error">{errorMessage}</p> : null}
+
+                <button className="btn-primary" type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Creating..." : "Create and enter room"}
+                </button>
+              </form>
+              ) : isJoinPage ? (
+              <form className="room-form" onSubmit={handleJoinRoom}>
+                <label className="form-label">
+                  <span>Room ID</span>
+                  <input
+                    className="input"
+                    name="roomId"
+                    value={joinForm.roomId}
+                    onChange={handleJoinChange}
+                    placeholder="A1B2C3"
+                    autoComplete="off"
+                  />
+                </label>
+
+                <label className="form-label">
+                  <span>Password</span>
+                  <input
+                    className="input"
+                    name="password"
+                    type="password"
+                    value={joinForm.password}
+                    onChange={handleJoinChange}
+                    placeholder="Enter the room password"
+                    autoComplete="off"
+                  />
+                </label>
+
+                {errorMessage ? <p className="form-error">{errorMessage}</p> : null}
+
+                <button className="btn-primary" type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Joining..." : "Join room"}
+                </button>
+              </form>
+              ) : (
+                <button className="btn-primary" type="button" onClick={handleGuestRoom} disabled={isSubmitting}>
+                  {isSubmitting ? "Opening guest room..." : "Enter guest room"}
+                </button>
+              )}
+              <p className="auth-copy"><Link to="/">Back to home</Link></p>
+            </>
+          ) : (
+            <>
+              <div className="auth-header">
+                <p className="eyebrow">Realtime workspace</p>
+                <h1 className="heading-xl">Code together, in one shared workspace.</h1>
+                <p className="auth-copy">Create a protected room, join your team, or enter the guest room to start collaborating.</p>
+              </div>
+              <div className="room-form">
+                <Link className="btn-primary" to="/create">Create room</Link>
+                <Link className="btn-secondary" to="/join">Join room</Link>
+                <Link className="btn-secondary" to="/guest">Enter guest room</Link>
+              </div>
+            </>
+          )}
+        </div>
+      </section>
     </main>
   )
 }
