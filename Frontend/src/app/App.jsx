@@ -312,6 +312,10 @@ function App() {
   if (isInRoom) {
     return (
       <main className="app-shell">
+        <header className="site-header">
+          <Link className="brand" to="/"><span className="brand-mark">C</span>Code Collab</Link>
+          <nav className="site-nav"><Link to="/">Home</Link></nav>
+        </header>
         <section className="workspace-shell">
           <aside className="sidebar">
             <div className="sidebar-card">
@@ -382,6 +386,10 @@ function App() {
 
   return (
     <main className="app-shell">
+      <header className="site-header">
+        <Link className="brand" to="/"><span className="brand-mark">C</span>Code Collab</Link>
+        <nav className="site-nav"><Link to="/">Home</Link></nav>
+      </header>
       <section className="auth-shell">
         <div className="auth-card">
           {isCreatePage || isJoinPage || isGuestPage ? (
@@ -501,18 +509,30 @@ function App() {
               <p className="auth-copy"><Link to="/">Back to home</Link></p>
             </>
           ) : (
-            <>
-              <div className="auth-header">
-                <p className="eyebrow">Realtime workspace</p>
-                <h1 className="heading-xl">Code together, in one shared workspace.</h1>
-                <p className="auth-copy">Create a protected room, join your team, or enter the guest room to start collaborating.</p>
+            <div className="home-grid">
+              <div>
+                <div className="auth-header">
+                  <p className="eyebrow">Realtime workspace</p>
+                  <h1 className="heading-xl">Code together. Ship at full speed.</h1>
+                  <p className="auth-copy">A focused live workspace for pairing, debugging, and turning fast ideas into working code.</p>
+                </div>
+                <div className="home-actions">
+                  <Link className="btn-primary" to="/create">Create room</Link>
+                  <Link className="btn-secondary" to="/join">Join room</Link>
+                  <Link className="btn-secondary" to="/guest">Guest room</Link>
+                </div>
               </div>
-              <div className="room-form">
-                <Link className="btn-primary" to="/create">Create room</Link>
-                <Link className="btn-secondary" to="/join">Join room</Link>
-                <Link className="btn-secondary" to="/guest">Enter guest room</Link>
-              </div>
-            </>
+              <aside className="home-panel">
+                <div className="home-panel-title"><span>Live workspace</span><i className="live-dot" /></div>
+                <p className="subtle-text">Private rooms, real-time presence, and shared code in one place.</p>
+                <div className="home-stat-grid">
+                  <div className="home-stat"><strong>01</strong><span>Create</span></div>
+                  <div className="home-stat"><strong>02</strong><span>Invite</span></div>
+                  <div className="home-stat"><strong>03</strong><span>Collaborate</span></div>
+                  <div className="home-stat"><strong>LIVE</strong><span>Yjs sync</span></div>
+                </div>
+              </aside>
+            </div>
           )}
         </div>
       </section>
