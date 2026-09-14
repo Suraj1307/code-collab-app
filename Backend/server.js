@@ -1,14 +1,8 @@
 import crypto from "node:crypto"
-import path from "node:path"
-import { fileURLToPath } from "node:url"
 import express from "express"
 import { createServer } from "http"
 import { Server } from "socket.io"
 import { YSocketIO } from "y-socket.io/dist/server"
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
-const publicDir = path.join(__dirname, "public")
 
 const app = express()
 app.use((req, res, next) => {
@@ -23,7 +17,6 @@ app.use((req, res, next) => {
   next()
 })
 app.use(express.json())
-app.use(express.static(publicDir))
 
 const httpServer = createServer(app)
 
@@ -168,6 +161,13 @@ io.of(/^\/yjs\|.*$/).on("connection", (socket) => {
   })
 })
 
+app.get("/", (req, res) => {
+  return res.status(200).json({
+    success: true,
+    message: "Code Collab backend is running",
+  })
+})
+
 app.get("/health", (req, res) => {
   res.status(200).json({
     message: "ok",
@@ -303,19 +303,6 @@ app.post("/api/rooms/join", (req, res) => {
 
 app.get("/api/rooms/join", (req, res) => {
   return sendMethodNotAllowed(res, ["POST"])
-})
-
-app.get("/{*path}", (req, res, next) => {
-  if (
-    req.path.startsWith("/api") ||
-    req.path.startsWith("/socket.io") ||
-    req.path.startsWith("/assets") ||
-    req.path.includes(".")
-  ) {
-    return next()
-  }
-
-  return res.sendFile(path.join(publicDir, "index.html"))
 })
 
 const PORT = process.env.PORT || 3000
