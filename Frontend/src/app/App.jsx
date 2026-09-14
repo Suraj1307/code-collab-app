@@ -5,8 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import * as Y from "yjs"
 import { SocketIOProvider } from "y-socket.io"
 
-const SOCKET_SERVER_URL = import.meta.env.VITE_SOCKET_SERVER_URL || window.location.origin;
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || window.location.origin;
+const API_URL = import.meta.env.VITE_API_URL
 
 function createGuestUsername() {
   return `guest-${Math.random().toString(36).slice(2, 8)}`
@@ -127,7 +126,7 @@ function App() {
     setErrorMessage("")
 
     try {
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      const response = await fetch(`${API_URL}${endpoint}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -242,7 +241,7 @@ function App() {
 
     const doc = new Y.Doc()
     const yText = doc.getText("monaco")
-    const provider = new SocketIOProvider(SOCKET_SERVER_URL, roomSession.roomId, doc, {
+    const provider = new SocketIOProvider(API_URL, roomSession.roomId, doc, {
       autoConnect: true,
       auth: {
         roomId: roomSession.roomId,
