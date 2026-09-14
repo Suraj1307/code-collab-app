@@ -8,3 +8,5 @@ export function startServer() {
   initializeSocketServer(httpServer, env.allowedOrigins)
   httpServer.listen(env.port, "0.0.0.0", () => console.log(`Server is running on port ${env.port}`))
 }
+
+startServer()
